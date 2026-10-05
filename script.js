@@ -1,4 +1,5 @@
 // ===== 1. Select Elements =====
+const ClearAllBtn = document.querySelector("#clear-all-btn");
 const form = document.querySelector("#note-form");
 const noteInput = document.querySelector("#note-input");
 const noteCategory = document.querySelector("#note-category");
@@ -109,6 +110,15 @@ form.addEventListener("submit", function (event) {
         errorMessage.textContent = "Notes must be 200 characters or fewer.";
         return;
     }
+
+    ClearAllBtn.addEventListener("click", function () {
+        const confirmed = confirm("Delete all notes?");
+        if (confirmed) {
+            notes = [];
+            saveNotes();
+            render();
+        }
+    });
 
     const note = {
         id: Date.now(),
