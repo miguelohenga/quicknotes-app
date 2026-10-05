@@ -12,84 +12,103 @@ let notes = [];
 
 // ===== 3. Render Function =====
 function render() {
-    // Clear the list
     notesList.innerHTML = "";
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const visibleNotes = notes.filter(function (note) {
+        return note.text.toLowerCase().includes(searchTerm);
+    });
 
-    // Loop through notes and create a card for each
-    notes.forEach(function (note) {
+    if (visibleNotes.length === 0 && searchTerm !== "") {
+        const noMatch = document.createElement("li");
+        noMatch.textContent = "No notes match your search.";
+        noMatch.classList.add("no-match");
+        notesList.appendChild(noMatch);
+        updateCount();
+        return;
+    }
+
+    visibleNotes.forEach(function (note) {
         const li = document.createElement("li");
         li.classList.add("category-" + note.category);
 
-        // Note text
         const textSpan = document.createElement("span");
         textSpan.textContent = note.text;
 
-        // Category label
         const categoryLabel = document.createElement("small");
         categoryLabel.textContent = note.category;
 
-        // Date
         const dateSpan = document.createElement("small");
         dateSpan.textContent = note.createdAt;
 
-        // Delete button
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
         deleteBtn.classList.add("delete-btn");
         deleteBtn.addEventListener("click", function () {
             deleteNote(note.id);
         });
-        function deleteNote(id) {
-            notes = notes.filter(function (note) {
-                return note.id !== id;
-            });
-            render();
-        }
 
-        function updateCount() {
-            const count = notes.length;
-
-            if(total === 0) {
-                noteCount.textContent = "You have no notes yet.";
-            } else if(count === 1) {
-                noteCount.textContent = "You have 1 note.";
-            } else {
-                noteCount.textContent = "You have " + total + " notes.";
-            }
-        }
-        
-        // Add all elements to the list item
         li.appendChild(textSpan);
         li.appendChild(categoryLabel);
         li.appendChild(dateSpan);
         li.appendChild(deleteBtn);
 
-        // Add the list item to the list
         notesList.appendChild(li);
     });
+
+    updateCount();
 }
 
-// ===== 4. Handle Form Submit =====
+// ===== 4. Delete Note Function =====
+function deleteNote(id) {
+    notes = notes.filter(function (note) {
+        return note.id !== id;
+    });
+    saveNotes();
+    render();
+}
+
+// ===== 5. Update Count Function =====
+function updateCount() {
+    const total = notes.length;
+    if (total === 0) {
+        noteCount.textContent = "You have no notes yet.";
+    } else if (total === 1) {
+        noteCount.textContent = "You have 1 note.";
+    } else {
+        noteCount.textContent = "You have " + total + " notes.";
+    }
+}
+
+// ===== 6. Save and Load Functions =====
+function saveNotes() {
+    localStorage.setItem("quicknotes-notes", JSON.stringify(notes));
+}
+
+function loadNotes() {
+    const saved = localStorage.getItem("quicknotes-notes");
+    if (saved) {
+        notes = JSON.parse(saved);
+    } else {
+        notes = [];
+    }
+}
+
+// ===== 7. Form Submit Handler =====
 form.addEventListener("submit", function (event) {
     event.preventDefault();
-
     const text = noteInput.value.trim();
     const category = noteCategory.value;
-console.log("Text length:", text.length);
-    // clear any previos error
     errorMessage.textContent = "";
 
-    // Validate empty or only spaces
     if (text === "") {
         errorMessage.textContent = "Please type a note first.";
         return;
     }
+
     if (text.length > 200) {
         errorMessage.textContent = "Notes must be 200 characters or fewer.";
         return;
     }
-
-    //Creat the note object
 
     const note = {
         id: Date.now(),
@@ -98,14 +117,20 @@ console.log("Text length:", text.length);
         createdAt: new Date().toLocaleString()
     };
 
-    // Add to the notes array
     notes.push(note);
-
-    // Clear the input
+    saveNotes();
     noteInput.value = "";
-
-    //Clear the error(in case there was one)
-
-    // Re-render
+    errorMessage.textContent = "";
     render();
 });
+
+// ===== 8. Search and Page Load =====
+searchInput.addEventListener("input", function () {
+    render();
+});
+
+loadNotes();
+render();
+
+
+
