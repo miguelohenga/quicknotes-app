@@ -36,7 +36,28 @@ function render() {
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
         deleteBtn.classList.add("delete-btn");
+        deleteBtn.addEventListener("click", function () {
+            deleteNote(note.id);
+        });
+        function deleteNote(id) {
+            notes = notes.filter(function (note) {
+                return note.id !== id;
+            });
+            render();
+        }
 
+        function updateCount() {
+            const count = notes.length;
+
+            if(total === 0) {
+                noteCount.textContent = "You have no notes yet.";
+            } else if(count === 1) {
+                noteCount.textContent = "You have 1 note.";
+            } else {
+                noteCount.textContent = "You have " + total + " notes.";
+            }
+        }
+        
         // Add all elements to the list item
         li.appendChild(textSpan);
         li.appendChild(categoryLabel);
@@ -52,10 +73,24 @@ function render() {
 form.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    const text = noteInput.value;
+    const text = noteInput.value.trim();
     const category = noteCategory.value;
+console.log("Text length:", text.length);
+    // clear any previos error
+    errorMessage.textContent = "";
 
-    // Create the note object
+    // Validate empty or only spaces
+    if (text === "") {
+        errorMessage.textContent = "Please type a note first.";
+        return;
+    }
+    if (text.length > 200) {
+        errorMessage.textContent = "Notes must be 200 characters or fewer.";
+        return;
+    }
+
+    //Creat the note object
+
     const note = {
         id: Date.now(),
         text: text,
@@ -68,6 +103,8 @@ form.addEventListener("submit", function (event) {
 
     // Clear the input
     noteInput.value = "";
+
+    //Clear the error(in case there was one)
 
     // Re-render
     render();
